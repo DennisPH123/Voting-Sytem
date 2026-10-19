@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Election Display</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; color: white; margin: 0; padding: 40px; box-sizing: border-box; }
+        h1 { text-align: center; font-size: 3rem; margin-bottom: 40px; color: #38bdf8; text-transform: uppercase; letter-spacing: 2px; }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; max-width: 1400px; margin: 0 auto; }
+        .category-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .category-card h3 { margin-top: 0; color: #f8fafc; font-size: 1.5rem; border-bottom: 2px solid #38bdf8; padding-bottom: 10px; }
+        .nominee-row { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 12px 15px; border-radius: 8px; margin-top: 12px; font-size: 1.1rem; }
+        .vote-badge { background: #0284c7; color: white; padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 1rem; }
+    </style>
+</head>
+<body>
+
+    <h1>🏆 Live Workplace Election Tally</h1>
+    <div id="display-grid" class="grid-container">Loading categories...</div>
+
+<script>
+    async function fetchDisplayData() {
+        try {
+            // We fetch admin data using the default passcode automatically for the display screen
+            const response = await fetch('/api/admin/data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ passcode: 'admin123' })
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                const grid = document.getElementById('display-grid');
+                let html = '';
+
+                for (const catId in data.results) {
+                    const cat = data.results[catId];
+                    html += `
+                        <div class="category-card">
+                            <h3>${cat.categoryTitle}</h3>
+                            <div>
+                                ${cat.nominees.length === 0 ? '<p style="color:#94a3b8;">No nominees yet.</p>' : ''}
+                                ${cat.nominees.map(n => `
+                                    <div class="nominee-row">
+                                        <span>${n.name}</span>
+                                        <span class="vote-badge">${n.votes} votes</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                grid.innerHTML = html;
+            }
+        } catch (error) {
+            console.error('Failed to update display');
+        }
+    }
+
+    fetchDisplayData();
+    setInterval(fetchDisplayData, 3000); // Auto-refreshes every 3 seconds live
+</script>
+
+</body>
+</html>

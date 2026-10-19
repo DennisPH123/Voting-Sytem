@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workplace Election Portal</title>
+    <!-- Tailwind CSS for professional styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-100 p-6">
+    <div class="max-w-3xl mx-auto space-y-6">
+        
+        <!-- HEADER & HOST TOGGLE BUTTON -->
+        <header class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
+            <h1 class="text-xl font-bold text-slate-800">🏆 Workplace Election Portal</h1>
+            <button 
+                onclick="toggleHostPanel()"
+                id="hostToggleBtn"
+                class="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 transition"
+            >
+                <span>⚙️ Host Dashboard</span>
+                <span id="arrowIcon">▼</span>
+            </button>
+        </header>
+
+        <!-- HOST MANAGEMENT PANEL (HIDDEN BY DEFAULT / DROP-DOWN THEME) -->
+        <section id="hostPanel" class="hidden bg-white border border-slate-200 rounded-xl p-6 shadow-md transition-all">
+            <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Host Management Console</h2>
+
+            <!-- PASSWORD GATE -->
+            <div id="passwordGate">
+                <form onsubmit="handleHostLogin(event)" class="space-y-4 max-w-md mx-auto py-4">
+                    <p class="text-sm text-slate-600">Enter your host password to access administrative controls and live tallies:</p>
+                    <div class="flex gap-2">
+                        <input 
+                            type="password" 
+                            id="hostPasswordInput"
+                            placeholder="Host Password" 
+                            class="border border-slate-300 rounded-lg px-3 py-2 flex-grow focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                        />
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium">
+                            Unlock
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- PROTECTED ADMIN DASHBOARD CONTENT -->
+            <div id="protectedContent" class="hidden space-y-6">
+                <div class="flex justify-between items-center bg-slate-50 p-3 rounded-lg border">
+                    <span class="text-sm text-emerald-600 font-semibold">🔓 Authenticated as Host</span>
+                    <button 
+                        onclick="lockHostPanel()"
+                        class="text-xs text-red-600 hover:underline font-medium"
+                    >
+                        Lock Panel
+                    </button>
+                </div>
+
+                <!-- Manage Categories -->
+                <div class="bg-slate-50 p-4 rounded-lg border">
+                    <h3 class="font-semibold text-slate-700 mb-2">Add Voting Category</h3>
+                    <form onsubmit="addCategory(event)" class="flex gap-2">
+                        <input 
+                            type="text" 
+                            id="newCategoryInput"
+                            placeholder="e.g. Best Innovator"
+                            class="border border-slate-300 rounded-lg px-3 py-2 flex-grow bg-white"
+                            required
+                        />
+                        <button type="submit" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 font-medium">
+                            Add Category
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Manage Nominees -->
+                <div class="bg-slate-50 p-4 rounded-lg border">
+                    <h3 class="font-semibold text-slate-700 mb-2">Add Nominee</h3>
+                    <form onsubmit="addNominee(event)" class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                        <select 
+                            id="categorySelect"
+                            class="border border-slate-300 rounded-lg px-3 py-2 bg-white"
+                            required
+                        >
+                            <option value="">Select Category</option>
+                        </select>
+                        <input 
+                            type="text" 
+                            id="newNomineeInput"
+                            placeholder="Nominee Name"
+                            class="border border-slate-300 rounded-lg px-3 py-2 bg-white"
+                            required
+                        />
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium">
+                            Add Nominee
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Secure Live Tally Section -->
+                <div class="bg-slate-900 text-white p-5 rounded-xl shadow-inner space-y-3">
+                    <h3 class="font-semibold text-emerald-400 flex items-center gap-2">
+                        <span>📊 Secure Live Vote Tallies</span>
+                    </h3>
+                    <div id="liveTalliesContainer" class="space-y-3">
+                        <!-- Dynamically populated via JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VOTER LOGIN / BALLOT SECTION -->
+        <main class="bg-white p-6 rounded-xl shadow-sm space-y-4">
+            <h2 class="text-lg font-bold text-slate-800">Workplace Election Login</h2>
+            <p class="text-sm text-slate-600">Log in securely with your Employee ID and Name to cast your vote.</p>
+            
+            <form onsubmit="handleVoterLogin(event)" class="space-y-3 max-w-md">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Employee Number</label>
+                    <input type="text" id="employeeId" placeholder="e.g., EMP001" class="w-full border border-slate-300 rounded-lg px-3 py-2" required />
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Full Name</label>
+                    <input type="text" id="employeeName" placeholder="e.g., Jane Doe" class="w-full border border-slate-300 rounded-lg px-3 py-2" required />
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white font-medium py-2 rounded-lg hover:bg-blue-700 transition">
+                    Access Ballot
+                </button>
+            </form>
+        </main>
+
+    </div>
+
+    <!-- CLIENT SCRIPT LOGIC -->
+    <script>
+        let categories = [
+            { id: 1, name: 'Best Head of Department', nominees: [{name: 'David Miller', votes: 0}, {name: 'Sarah Connor', votes: 0}] },
+            { id: 2, name: 'Best Team Player', nominees: [{name: 'James Cameron', votes: 0}, {name: 'Lisa Kudrow', votes: 0}] }
+        ];
+
+        let isHostOpen = false;
+        let isAuthenticated = false;
+
+        function toggleHostPanel() {
+            isHostOpen = !isHostOpen;
+            const panel = document.getElementById('hostPanel');
+            const arrow = document.getElementById('arrowIcon');
+            
+            if (isHostOpen) {
+                panel.classList.remove('hidden');
+                arrow.textContent = '▲';
+            } else {
+                panel.classList.add('hidden');
+                arrow.textContent = '▼';
+            }
+        }
+
+        function handleHostLogin(event) {
+            event.preventDefault();
+            const password = document.getElementById('hostPasswordInput').value;
+            
+            // Host Password check
+            if (password === 'AdminSecure123') {
+                isAuthenticated = true;
+                document.getElementById('passwordGate').classList.add('hidden');
+                document.getElementById('protectedContent').classList.remove('hidden');
+                renderHostData();
+            } else {
+                alert('Incorrect Host Password');
+            }
+        }
+
+        function lockHostPanel() {
+            isAuthenticated = false;
+            document.getElementById('hostPasswordInput').value = '';
+            document.getElementById('passwordGate').classList.remove('hidden');
+            document.getElementById('protectedContent').classList.add('hidden');
+        }
+
+        function renderHostData() {
+            const select = document.getElementById('categorySelect');
+            select.innerHTML = '<option value="">Select Category</option>';
+            categories.forEach(cat => {
+                select.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
+            });
+
+            const container = document.getElementById('liveTalliesContainer');
+            container.innerHTML = '';
+            
+            if (categories.length === 0) {
+                container.innerHTML = '<p class="text-slate-400 italic text-sm">No categories created yet.</p>';
+                return;
+            }
+
+            categories.forEach((cat, catIndex) => {
+                let nomineesHtml = '';
+                if (cat.nominees.length === 0) {
+                    nomineesHtml = '<li class="text-slate-500 italic text-sm">No nominees added yet.</li>';
+                } else {
+                    cat.nominees.forEach((nom, nomIndex) => {
+                        nomineesHtml += `
+                            <li class="flex justify-between items-center py-1 text-sm">
+                                <span>${nom.name}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="bg-slate-700 px-2 py-0.5 rounded text-xs text-emerald-400 font-mono">${nom.votes} votes</span>
+                                    <button onclick="removeNominee(${catIndex}, ${nomIndex})" class="text-red-400 hover:text-red-300 text-xs">Remove</button>
+                                </div>
+                            </li>`;
+                    });
+                }
+
+                container.innerHTML += `
+                    <div class="bg-slate-800 p-3 rounded-lg border border-slate-700">
+                        <div class="font-medium text-slate-200 border-b border-slate-700 pb-1 mb-2 flex justify-between items-center">
+                            <span>${cat.name}</span>
+                            <button onclick="deleteCategory(${catIndex})" class="text-xs text-red-400 hover:underline">Delete Category</button>
+                        </div>
+                        <ul class="space-y-1 text-slate-300">
+                            ${nomineesHtml}
+                        </ul>
+                    </div>`;
+            });
+        }
+
+        function addCategory(event) {
+            event.preventDefault();
+            const name = document.getElementById('newCategoryInput').value.trim();
+            if (!name) return;
+            categories.push({ id: Date.now(), name: name, nominees: [] });
+            document.getElementById('newCategoryInput').value = '';
+            renderHostData();
+        }
+
+        function addNominee(event) {
+            event.preventDefault();
+            const categoryName = document.getElementById('categorySelect').value;
+            const nomineeName = document.getElementById('newNomineeInput').value.trim();
+            if (!categoryName || !nomineeName) return;
+
+            const category = categories.find(c => c.name === categoryName);
+            if (category) {
+                category.nominees.push({ name: nomineeName, votes: 0 });
+                document.getElementById('newNomineeInput').value = '';
+                renderHostData();
+            }
+        }
+
+        function deleteCategory(catIndex) {
+            if (confirm('Are you sure you want to delete this category?')) {
+                categories.splice(catIndex, 1);
+                renderHostData();
+            }
+        }
+
+        function removeNominee(catIndex, nomIndex) {
+            if (confirm('Remove this nominee?')) {
+                categories[catIndex].nominees.splice(nomIndex, 1);
+                renderHostData();
+            }
+        }
+
+        function handleVoterLogin(event) {
+            event.preventDefault();
+            const empId = document.getElementById('employeeId').value;
+            const name = document.getElementById('employeeName').value;
+            alert(`Welcome ${name} (${empId})! Ballot view ready.`);
+        }
+    </script>
+</body>
+</html>
